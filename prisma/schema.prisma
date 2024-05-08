@@ -1,0 +1,149 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model comments {
+  id          BigInt    @id @default(autoincrement())
+  idUser      BigInt
+  idPost      BigInt
+  comment     String    @db.VarChar(200)
+  datePosted  DateTime  @default(now()) @db.DateTime(0)
+  dateDeleted DateTime? @db.DateTime(0)
+  users       users     @relation(fields: [idUser], references: [id], onUpdate: Restrict, map: "comments_ibfk_1")
+  grows       grows     @relation(fields: [idPost], references: [id], onUpdate: Restrict, map: "comments_ibfk_2")
+
+  @@index([idPost], map: "idPost")
+  @@index([idUser], map: "idUser")
+}
+
+model followers {
+  userFrom                        BigInt
+  userTo                          BigInt
+  users_followers_userFromTousers users  @relation("followers_userFromTousers", fields: [userFrom], references: [id], onUpdate: Restrict, map: "followers_ibfk_1")
+  users_followers_userToTousers   users  @relation("followers_userToTousers", fields: [userTo], references: [id], onUpdate: Restrict, map: "followers_ibfk_2")
+
+  @@id([userFrom, userTo])
+  @@index([userTo], map: "userTo")
+}
+
+model grows {
+  id           BigInt     @id @default(autoincrement())
+  idUser       BigInt
+  idStrain     BigInt
+  idVegLight   BigInt
+  idFloLight   BigInt
+  idEnviroment BigInt
+  idMedium     BigInt
+  idTypeGrow   BigInt
+  description  String     @db.VarChar(255)
+  title        String     @db.VarChar(255)
+  datePosted   DateTime   @default(now()) @db.DateTime(0)
+  dateModified DateTime?  @db.DateTime(0)
+  dateDeleted  DateTime?  @db.DateTime(0)
+  comments     comments[]
+  users        users      @relation(fields: [idUser], references: [id], onUpdate: Restrict, map: "grows_ibfk_1")
+  likes        likes[]
+  saves        saves[]
+  strains      strains?
+  weeks        weeks[]
+
+  @@index([idUser], map: "idUser")
+}
+
+model likes {
+  id         BigInt    @id @default(autoincrement())
+  idUser     BigInt
+  idPost     BigInt
+  datePosted DateTime? @default(now()) @db.DateTime(0)
+  grows      grows     @relation(fields: [idPost], references: [id], onUpdate: Restrict, map: "likes_ibfk_1")
+  users      users     @relation(fields: [idUser], references: [id], onUpdate: Restrict, map: "likes_ibfk_2")
+
+  @@index([idPost], map: "idPost")
+  @@index([idUser], map: "idUser")
+}
+
+model nutrients {
+  id            BigInt          @id @default(autoincrement())
+  description   String?         @db.VarChar(255)
+  weeknutrients weeknutrients[]
+}
+
+model saves {
+  id         BigInt    @id @default(autoincrement())
+  idUser     BigInt
+  idPost     BigInt
+  datePosted DateTime? @default(now()) @db.DateTime(0)
+  users      users     @relation(fields: [idUser], references: [id], onUpdate: Restrict, map: "saves_ibfk_1")
+  grows      grows     @relation(fields: [idPost], references: [id], onUpdate: Restrict, map: "saves_ibfk_2")
+
+  @@index([idPost], map: "idPost")
+  @@index([idUser], map: "idUser")
+}
+
+model strains {
+  id          BigInt @id @default(autoincrement())
+  name        String @db.VarChar(100)
+  description String @db.VarChar(255)
+  grows       grows  @relation(fields: [id], references: [id], onUpdate: Restrict, map: "strains_ibfk_1")
+}
+
+model users {
+  id                                  BigInt      @id @default(autoincrement())
+  idRol                               BigInt
+  username                            String      @unique(map: "username") @db.VarChar(255)
+  name                                String      @db.VarChar(255)
+  password                            String      @db.VarChar(255)
+  profilePic                          String?     @db.VarChar(255)
+  birthdate                           DateTime    @db.Date
+  email                               String      @unique(map: "users_unique") @db.VarChar(255)
+  comments                            comments[]
+  followers_followers_userFromTousers followers[] @relation("followers_userFromTousers")
+  followers_followers_userToTousers   followers[] @relation("followers_userToTousers")
+  grows                               grows[]
+  likes                               likes[]
+  saves                               saves[]
+}
+
+model weekcategories {
+  id       BigInt @id @default(autoincrement())
+  idWeek   BigInt
+  category String @db.VarChar(50)
+  weeks    weeks  @relation(fields: [idWeek], references: [id], onUpdate: Restrict, map: "weekcategories_ibfk_1")
+
+  @@index([idWeek], map: "idWeek")
+}
+
+model weeknutrients {
+  id         BigInt    @id @default(autoincrement())
+  idNutrient BigInt
+  idWeek     BigInt
+  cuantity   Float     @db.Float
+  weeks      weeks     @relation(fields: [idWeek], references: [id], onUpdate: Restrict, map: "weeknutrients_ibfk_1")
+  nutrients  nutrients @relation(fields: [idNutrient], references: [id], onUpdate: Restrict, map: "weeknutrients_ibfk_2")
+
+  @@index([idNutrient], map: "idNutrient")
+  @@index([idWeek], map: "idWeek")
+}
+
+model weeks {
+  id             BigInt           @id @default(autoincrement())
+  idPost         BigInt
+  idState        BigInt
+  number         BigInt
+  description    String           @db.VarChar(255)
+  weekcategories weekcategories[]
+  weeknutrients  weeknutrients[]
+  grows          grows            @relation(fields: [idPost], references: [id], onUpdate: Restrict, map: "weeks_ibfk_1")
+
+  @@index([idPost], map: "idPost")
+}
+
+model roles {
+  id  Int    @id @default(autoincrement())
+  rol String @db.VarChar(50)
+}
