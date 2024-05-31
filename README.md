@@ -1,1 +1,1 @@
-# cannalink-v1-node
+# GrowLink-node
