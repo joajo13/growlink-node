@@ -1,16 +1,32 @@
 const { PrismaClient } = require('@prisma/client')
 const prisma = new PrismaClient()
 
-exports.getUserByUsernameForLogin = async(username) => {
-    const user = await prisma.users.findUnique({
-        where: {
-            username: username
-        },
+exports.getUserByUsernameOrEmail = async (usernameOrEmail) => {
+    let user = await prisma.users.findUnique({
+        where: { username: usernameOrEmail },
         select: {
             name: true,
             username: true,
+            email: true,
+            profilePic: true,
+            password: true,
+            idRol: true
         }
     })
+
+    if (!user) {
+        user = await prisma.users.findUnique({
+            where: { email: usernameOrEmail },
+            select: {
+                name: true,
+                username: true,
+                email: true,
+                profilePic: true,
+                password: true,
+            }
+        })
+    }
+
     return user
 }
 
@@ -20,8 +36,8 @@ exports.createUser = async (newUser) => {
             name: newUser.name,
             username: newUser.username,
             email: newUser.email,
-            birthdate: newUser.birthdate,
-            idRol: 2,
+            birthdate: new Date(newUser.birthdate),
+            idRol: 3,
             password: newUser.password
         },
         select: {
@@ -33,4 +49,15 @@ exports.createUser = async (newUser) => {
     })
 
     return user
+}
+
+exports.getAuthRoles = async () => {
+    const roles = await prisma.roles.findMany({
+        select: {
+            id: true,
+            rol: true
+        }
+    })
+
+    return roles
 }

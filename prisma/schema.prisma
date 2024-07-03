@@ -32,27 +32,32 @@ model followers {
 }
 
 model grows {
-  id           BigInt     @id @default(autoincrement())
-  idUser       BigInt
-  idStrain     BigInt
-  idVegLight   BigInt
-  idFloLight   BigInt
-  idEnviroment BigInt
-  idMedium     BigInt
-  idTypeGrow   BigInt
-  description  String     @db.VarChar(255)
-  title        String     @db.VarChar(255)
-  datePosted   DateTime   @default(now()) @db.DateTime(0)
-  dateModified DateTime?  @db.DateTime(0)
-  dateDeleted  DateTime?  @db.DateTime(0)
-  comments     comments[]
-  users        users      @relation(fields: [idUser], references: [id], onUpdate: Restrict, map: "grows_ibfk_1")
-  likes        likes[]
-  saves        saves[]
-  strains      strains?
-  weeks        weeks[]
+  id                              BigInt     @id @default(autoincrement())
+  idUser                          BigInt
+  idStrain                        BigInt
+  idVegLight                      BigInt
+  idFloLight                      BigInt
+  idEnviroment                    BigInt
+  idMedium                        BigInt
+  idTypeGrow                      BigInt
+  description                     String     @db.VarChar(255)
+  title                           String     @db.VarChar(255)
+  datePosted                      DateTime   @default(now()) @db.DateTime(0)
+  dateModified                    DateTime?  @db.DateTime(0)
+  dateDeleted                     DateTime?  @db.DateTime(0)
+  coverImage                      String     @default("default-cover") @db.VarChar(100)
+  comments                        comments[]
+  lights_grows_idFloLightTolights lights     @relation("grows_idFloLightTolights", fields: [idFloLight], references: [id], onUpdate: Restrict, map: "fk_idFloLight")
+  lights_grows_idVegLightTolights lights     @relation("grows_idVegLightTolights", fields: [idVegLight], references: [id], onUpdate: Restrict, map: "fk_idVegLight")
+  users                           users      @relation(fields: [idUser], references: [id], onUpdate: Restrict, map: "grows_ibfk_1")
+  likes                           likes[]
+  saves                           saves[]
+  strains                         strains?
+  weeks                           weeks[]
 
   @@index([idUser], map: "idUser")
+  @@index([idFloLight], map: "fk_idFloLight")
+  @@index([idVegLight], map: "fk_idVegLight")
 }
 
 model likes {
@@ -107,6 +112,9 @@ model users {
   grows                               grows[]
   likes                               likes[]
   saves                               saves[]
+  lights                              roles       @relation(fields: [idRol], references: [id], onUpdate: Restrict, map: "fk_idRol")
+
+  @@index([idRol], map: "fk_idRol")
 }
 
 model weekcategories {
@@ -144,6 +152,17 @@ model weeks {
 }
 
 model roles {
-  id  Int    @id @default(autoincrement())
-  rol String @db.VarChar(50)
+  id    BigInt  @id @default(autoincrement())
+  rol   String  @db.VarChar(50)
+  users users[]
+}
+
+model lights {
+  id                             BigInt  @id @default(autoincrement())
+  idBrand                        BigInt
+  idLightType                    BigInt
+  name                           String  @unique(map: "name") @db.VarChar(150)
+  potency                        Int
+  grows_grows_idFloLightTolights grows[] @relation("grows_idFloLightTolights")
+  grows_grows_idVegLightTolights grows[] @relation("grows_idVegLightTolights")
 }

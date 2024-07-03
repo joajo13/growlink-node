@@ -1,8 +1,7 @@
 const router = require('express').Router();
-const { isLogged } = require('../middlewares/auth');
+const { isLogged } = require('../middlewares/controller');
 const cPosts = require('./controller');
-const mwAuth = require('../middlewares/auth').isLogged;
 
-router.get('/getAll', isLogged, cPosts.getAllPosts);
+router.get('/getAll', cPosts.getPublicFeedPosts);
 
 module.exports = router;
