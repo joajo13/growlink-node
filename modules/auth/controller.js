@@ -13,13 +13,15 @@ exports.login = async (req, res) => {
     const user = await mAuth.getUserByUsernameOrEmail(usernameOrEmail);
 
     if (!user) {
-        return response(res, 404, 'Invalid credentials', null);
+        return response(res, 401, 'Invalid credentials', null);
     }
 
     const match = await bcrypt.compare(password, user.password);
 
     if (!match) {
-        return response(res, 404, 'Invalid credentials', null);
+        return response(res, 401, 'Invalid credentials', null, {
+            message: 'Invalid password'
+        });
     }
 
     const userResponse = {
@@ -27,14 +29,15 @@ exports.login = async (req, res) => {
         username: user.username,
         email: user.email,
         profilePic: user.profilePic,
-        rol: parseInt(user.idRol)
+        rol: parseInt(user.idRol),
     }
-
-    const token = jwt.sign({user: userResponse}, SECRET_KEY, { expiresIn: '24h' });
-
+    
+    const token = jwt.sign({ user: userResponse }, SECRET_KEY, { expiresIn: '24h' });
+    
+    userResponse.token = token;
+    
     return response(res, 200, 'Login succesfully', {
         user: userResponse,
-        token: token
     });
 }
 
@@ -51,7 +54,7 @@ exports.signup = async (req, res) => {
     }
 
     console.log(newUser);
-    const {validation, message} = await validateNewUser(newUser);
+    const { validation, message } = await validateNewUser(newUser);
 
     if (!validation) {
         return response(res, 400, message, null);
